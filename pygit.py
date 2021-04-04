@@ -10,42 +10,60 @@ from collections.abc import Callable
 
 import git
 
+enable_verbose = False
+
+
+def print_log(msg):
+    global enable_verbose
+    if enable_verbose:
+        if isinstance(msg, list):
+            print(" ".join(msg))
+        else:
+            print(str(msg))
+
 
 def print_information_from_(commit):
-    print('\n-------------------------------------------------')
+    print_log('\n-------------------------------------------------')
 
     # Ignore merge branch information
     if 'Merge branch' in commit.summary:
-        print(commit.summary)
-        return
+        pass
+        # print(commit.summary)
+        # return
+    if 'Merged in' in commit.summary:
+        pass
+        # print(commit.summary)
+        # return
 
-    # Print commit message
-    print(commit.committed_datetime, f'[{commit.hexsha}]', commit.committer)
-    print(commit.parents)
-    print(commit.summary)
-    print(" ", "\n  ".join(list(commit.stats.files)))
+        # Print commit message
+    print_log(f'{commit.committed_datetime}')
+    print_log(f'[{commit.hexsha}] {commit.committer}')
+    # print_log(commit.parents)
+    print_log(commit.summary)
+    print_log(['   ', '\n    '.join(list(commit.stats.files))])
 
 
 def print_modify_file_path_from_(file_list):
-    print('\nModify File List')
-    print("=================================================")
+    print_log('\nModify File List')
+    print_log("=================================================")
     for f_path in sorted(file_list):
-        print(f_path)
+        print_log(f_path)
 
 
 def print_help():
     print('Arguments:')
-    print('    --repo       repository path')
-    print('    --start      start commit hex')
-    print('    --end        end commit hex')
-    print('    --out        export diff file path')
+    print('    -r --repo       repository path')
+    print('    -s --start      start commit hex')
+    print('    -e --end        end commit hex')
+    print('    -o --out        export diff file path')
+    print('    -v --verbose    verbose mode')
     print('')
     print('Example:')
-    print('    pygit',
-          '--repo ${repo_path}',
-          '--start {start_commit_hex}',
-          '--end {end_commit_hex}',
-          '--export {export_path}')
+    print(['    pygit',
+           '--repo ${repo_path}',
+           '--start {start_commit_hex}',
+           '--end {end_commit_hex}',
+           '--export {export_path}'])
 
 
 def is_not_blank(value):
@@ -105,6 +123,10 @@ def main():
             else:
                 repository_path = convert_home_path(sys.argv[index])
 
+        elif arg in ('--verbose', '-v'):
+            global enable_verbose
+            enable_verbose = True
+
         elif arg in ('--start', '-s'):
             index = i+1
             check(index, has_value, err_msg='Start commit hex not be blank.')
@@ -139,7 +161,8 @@ def main():
     print('end   : ', end_commit_hex)
     print('out   : ', export_path)
 
-    if not repository_path or not start_commit_hex or not end_commit_hex or not export_path:
+    if (not repository_path or not start_commit_hex
+            or not end_commit_hex or not export_path):
         sys.exit()
 
     repo = git.Repo(repository_path)
@@ -161,24 +184,24 @@ def main():
 
     print_modify_file_path_from_(file_list)
 
-    print('\nOutput File folder')
-    print("=================================================")
+    print_log('\nOutput File folder')
+    print_log("=================================================")
     uni_folder_list = set()
     for file_path in sorted(file_list):
         folder = file_path[:-len(file_path.split('/')[-1])]
         uni_folder_list.add(export_path + folder)
 
-    print('\n'.join(uni_folder_list), '\n')
+    print_log([('\n'.join(uni_folder_list)), '\n'])
 
     for folder in uni_folder_list:
         if folder_not_exist(folder):
             cmd = f'mkdir -p {str(folder)}'
-            print(cmd)
+            print_log(cmd)
             subprocess.call(cmd, shell=True)
 
     for file in file_list:
         cmd = f'cp {repository_path + str(file)} {export_path + str(file)}'
-        print(cmd)
+        print_log(cmd)
         subprocess.call(cmd, shell=True)
 
 
