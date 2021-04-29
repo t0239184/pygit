@@ -45,13 +45,13 @@ def print_information_from_(commit: object):
 
         # Print commit message
     print_log(f'{commit.committed_datetime}')
-    #print_log(f'[{commit.hexsha}] {commit.committer}')
+    print_log(f'[{commit.hexsha}] {commit.committer}')
 
     print_log(commit.summary)
-    #print_log(commit.message)
+    # print_log(commit.message)
 
     #print_log('type:' + commit.type)
-    #print_log(commit.traverse())
+    # print_log(commit.traverse())
     print_log(['   ', '\n    '.join(list(commit.stats.files))])
 
 
